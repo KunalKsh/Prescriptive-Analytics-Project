@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Wheeler Insurance Distribution Optimization</title>
+    <!-- Use Tailwind CSS for a modern, responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for the dashboard visuals -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .section-header {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #e5e7eb;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .nav-link.active {
+            font-weight: bold;
+            color: #1d4ed8;
+            border-bottom: 2px solid #1d4ed8;
+        }
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-6 lg:p-12">
+        <!-- Project Title and Nav Bar -->
+        <header class="bg-white rounded-xl shadow-md p-6 mb-8 sticky top-6 z-10">
+            <h1 class="text-4xl font-bold text-center text-blue-800">Two-Wheeler Insurance Optimization</h1>
+            <p class="text-center text-gray-600 mt-2">Prescriptive Analytics Project by Kunal Kaushal</p>
+            <nav class="mt-6 flex justify-center space-x-4 sm:space-x-6 overflow-x-auto whitespace-nowrap">
+                <a href="#section1" class="nav-link text-gray-700 hover:text-blue-600 transition-colors duration-200">Problem Description</a>
+                <a href="#section2" class="nav-link text-gray-700 hover:text-blue-600 transition-colors duration-200">The Model</a>
+                <a href="#section3" class="nav-link text-gray-700 hover:text-blue-600 transition-colors duration-200">Data & Methodology</a>
+                <a href="#section4" class="nav-link text-gray-700 hover:text-blue-600 transition-colors duration-200">Optimal Solution</a>
+                <a href="#dashboard-section" class="nav-link text-gray-700 hover:text-blue-600 transition-colors duration-200">Dashboard</a>
+                <a href="#section5" class="nav-link text-gray-700 hover:text-blue-600 transition-colors duration-200">Test Scenarios & Conclusion</a>
+            </nav>
+        </header>
+
+        <!-- Main Content Sections -->
+        <main>
+            <!-- SECTION 1: Problem Description -->
+            <section id="section1" class="bg-white rounded-xl shadow-md p-8 mb-8">
+                <h2 class="section-header">1. Problem Description</h2>
+                <div class="space-y-4 text-gray-700">
+                    <p>
+                        In the two-wheeler insurance industry, our organization acts as a crucial intermediary between various insurers and a vast network of dealers. Each insurer offers different payout structures through their various branches, which are influenced by parameters like the vehicle's OEM (Original Equipment Manufacturer), RTO (Regional Transport Office), Body Type, and Fuel Type.
+                    </p>
+                    <p>
+                        The core challenge is to accurately and efficiently match each dealer with the most profitable insurer branch offer. This matching process must satisfy a series of technical constraints to ensure the validity of the policy, all while maximizing our overall profit. The prescriptive analytics model built for this project automates this complex assignment, moving away from an error-prone and non-scalable manual process.
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECTION 2: The Model -->
+            <section id="section2" class="bg-white rounded-xl shadow-md p-8 mb-8">
+                <h2 class="section-header">2. The Model: Objective Function & Constraints</h2>
+                <div class="space-y-6 text-gray-700">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-2">Objective Function</h3>
+                        <p>
+                            The primary goal is to maximize the total profit earned from all matched dealer-insurer pairs. This is formulated as a Mixed-Integer Linear Programming (MILP) problem.
+                        </p>
+                        <div class="bg-gray-100 rounded-lg p-4 mt-2">
+                            <pre class="whitespace-pre-wrap font-mono text-sm text-gray-800">Maximize Z = $$\sum_{i,j}(P_{j} \times PO_{i} - D_{j} - C)\cdot x_{ij}$$</pre>
+                            <ul class="list-disc list-inside mt-4 text-gray-600 text-sm space-y-1">
+                                <li>$x_{ij}$ = 1 if dealer $j$ is assigned to branch $i$, otherwise 0 (our decision variable).</li>
+                                <li>$P_j$ = Premium of dealer $j$.</li>
+                                <li>$PO_i$ = Payout percentage of branch $i$.</li>
+                                <li>$D_j$ = Minimum payout expectation of dealer $j$.</li>
+                                <li>$C$ = Fixed Commission Per Acquisition (CPA).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-2">Core Constraints</h3>
+                        <p>The model must adhere to the following rules to ensure a valid and optimal solution:</p>
+                        <ul class="list-decimal list-inside space-y-2 text-gray-700">
+                            <li><strong>RTO, OEM, Fuel, & Body Type Match:</strong> The dealer's vehicle attributes must be supported by the assigned insurer branch.</li>
+                            <li><strong>PO% > 0:</strong> The payout percentage must be positive.</li>
+                            <li><strong>Dealer Payout > Minimum:</strong> The calculated payout for the dealer must meet their minimum expectation.</li>
+                            <li><strong>Fixed CPA:</strong> A fixed cost of ₹200 is subtracted from each transaction's profit.</li>
+                            <li><strong>One Dealer per Branch:</strong> Each dealer can only be assigned to a single insurer branch.</li>
+                            <li><strong>Active Branches Only:</strong> Only insurer branches with a status of 'Active' are considered.</li>
+                            <li><strong>Total Margin ≥ 0:</strong> The final profit margin for any transaction must be non-negative.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: Data & Methodology -->
+            <section id="section3" class="bg-white rounded-xl shadow-md p-8 mb-8">
+                <h2 class="section-header">3. Data & Methodology</h2>
+                <div class="space-y-6 text-gray-700">
+                    <p>
+                        The model uses a series of data tables as inputs and employs a Mixed-Integer Linear Programming (MILP) solver to find the optimal solution.
+                    </p>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-2">Input Data</h3>
+                    <div class="table-container">
+                        <h4 class="text-xl font-medium text-gray-700 mt-4 mb-2">Dealers Data</h4>
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr><th>Dealer</th><th>RTO</th><th>OEM</th><th>Fuel</th><th>Body</th><th>Premium (₹)</th><th>Min Payout (₹)</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>D1</td><td>MH01</td><td>Honda</td><td>Petrol</td><td>Scooter</td><td>6000</td><td>1800</td></tr>
+                                <tr><td>D2</td><td>DL01</td><td>TVS</td><td>Petrol</td><td>Bike</td><td>7500</td><td>2000</td></tr>
+                                <tr><td>D3</td><td>KA01</td><td>Bajaj</td><td>Petrol</td><td>Bike</td><td>5000</td><td>1500</td></tr>
+                                <tr><td>D4</td><td>UP32</td><td>Hero</td><td>Petrol</td><td>Scooter</td><td>6800</td><td>1700</td></tr>
+                                <tr><td>D5</td><td>GJ01</td><td>Yamaha</td><td>Electric</td><td>Bike</td><td>7200</td><td>2100</td></tr>
+                                <tr><td>D6</td><td>BR10</td><td>Suzuki</td><td>Petrol</td><td>Scooter</td><td>5500</td><td>1600</td></tr>
+                                <tr><td>D7</td><td>MH02</td><td>Royal Enfield</td><td>Petrol</td><td>Bike</td><td>6400</td><td>1900</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-container">
+                        <h4 class="text-xl font-medium text-gray-700 mt-6 mb-2">Branches Data</h4>
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr><th>Branch</th><th>Active</th><th>PO%</th><th>Allowed RTOs</th><th>Allowed OEMs</th><th>Fuel</th><th>Body</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>B1</td><td>Yes</td><td>0.40</td><td>MH01, MH02, DL01, KA01</td><td>All</td><td>Petrol</td><td>Bike, Scooter</td></tr>
+                                <tr><td>B2</td><td>Yes</td><td>0.35</td><td>GJ01, MH01, BR10</td><td>Hero, Honda, TVS</td><td>Petrol</td><td>Bike</td></tr>
+                                <tr><td>B3</td><td>Yes</td><td>0.42</td><td>All</td><td>All</td><td>Petrol, Electric</td><td>Bike, Scooter</td></tr>
+                                <tr><td>B4</td><td>Yes</td><td>0.38</td><td>UP32, BR10, DL01</td><td>Bajaj, Yamaha, Suzuki</td><td>Petrol</td><td>Bike, Scooter</td></tr>
+                                <tr><td>B5</td><td>No</td><td>0.37</td><td>MH02, KA01</td><td>Honda, Royal Enfield</td><td>Petrol</td><td>Bike</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mt-6 mb-2">Methodology</h3>
+                    <p>
+                        The core methodology is **Prescriptive Analytics** using a **Mixed-Integer Linear Programming (MILP)** solver. This powerful technique goes beyond predicting outcomes (predictive analytics) to prescribing the optimal course of action.
+                        It works by:
+                        <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li><strong>Defining Variables:</strong> Binary variables ($x_{ij}$) representing the assignment.</li>
+                            <li><strong>Formulating the Objective:</strong> A linear equation to maximize profit.</li>
+                            <li><strong>Applying Constraints:</strong> A set of linear inequalities that the solution must satisfy.</li>
+                        </ul>
+                    </p>
+                    <p>
+                        The solution is found by a mathematical solver (like the one used in Excel Solver or more robust platforms like GLPK or CPLEX) which identifies the combination of assignments that yields the highest total profit while respecting all stated constraints.
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECTION 4: Optimal Solution (Results) -->
+            <section id="section4" class="bg-white rounded-xl shadow-md p-8 mb-8">
+                <h2 class="section-header">4. Optimal Solution</h2>
+                <div class="space-y-4 text-gray-700">
+                    <p>
+                        Based on the data and the MILP model, the solver generated the following optimal assignments, maximizing the total profit for the organization.
+                    </p>
+                    <div class="table-container">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr><th>Dealer</th><th>Assigned Branch</th><th>Premium (₹)</th><th>PO%</th><th>Dealer Payout (₹)</th><th>CPA (₹)</th><th>Margin (₹)</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>D1</td><td>B3</td><td>6000</td><td>0.42</td><td>2520</td><td>200</td><td>520</td></tr>
+                                <tr><td>D2</td><td>B3</td><td>7500</td><td>0.42</td><td>3150</td><td>200</td><td>950</td></tr>
+                                <tr><td>D3</td><td>B1</td><td>5000</td><td>0.40</td><td>2000</td><td>200</td><td>300</td></tr>
+                                <tr><td>D4</td><td>B3</td><td>6800</td><td>0.42</td><td>2856</td><td>200</td><td>956</td></tr>
+                                <tr><td>D5</td><td>B3</td><td>7200</td><td>0.42</td><td>3024</td><td>200</td><td>724</td></tr>
+                                <tr><td>D6</td><td>B4</td><td>5500</td><td>0.38</td><td>2090</td><td>200</td><td>290</td></tr>
+                                <tr><td>D7</td><td>B3</td><td>6400</td><td>0.42</td><td>2688</td><td>200</td><td>588</td></tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-200 font-bold">
+                                    <td colspan="5"></td>
+                                    <td>TOTAL PROFIT</td>
+                                    <td>4328</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4.5: Smart Dashboard -->
+            <section id="dashboard-section" class="bg-white rounded-xl shadow-md p-8 mb-8">
+                <h2 class="section-header">4.5. Smart Dashboard</h2>
+                <div class="space-y-6 text-gray-700">
+                    <p>
+                        This smart dashboard provides a visual summary of the optimization results, allowing stakeholders to quickly understand the distribution and profitability of the assignments.
+                    </p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Profitability Breakdown</h3>
+                            <div class="chart-container">
+                                <canvas id="profitability-chart"></canvas>
+                            </div>
+                            <p class="mt-4 text-sm text-gray-600">
+                                This chart shows the percentage contribution of each dealer's margin to the total project profit. It highlights which assignments are the most valuable.
+                            </p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Assignments by Branch</h3>
+                            <div class="chart-container">
+                                <canvas id="assignments-chart"></canvas>
+                            </div>
+                            <p class="mt-4 text-sm text-gray-600">
+                                This bar chart shows the number of dealers assigned to each active insurer branch. It provides a clear visual of the workload distribution among the branches.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: Test Scenarios & Conclusion -->
+            <section id="section5" class="bg-white rounded-xl shadow-md p-8 mb-8">
+                <h2 class="section-header">5. Test Scenarios & Conclusion</h2>
+                <div class="space-y-4 text-gray-700">
+                    <p>
+                        This section demonstrates the model's ability to handle new data by finding the most profitable, feasible match for a hypothetical new dealer.
+                    </p>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-2">Test a New Combination</h3>
+                    <form id="test-form" class="space-y-4 bg-gray-50 p-6 rounded-lg shadow-inner">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label for="premium" class="block text-sm font-medium text-gray-700">Premium (₹)</label>
+                                <input type="number" id="premium" value="6500" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="minPayout" class="block text-sm font-medium text-gray-700">Min Payout (₹)</label>
+                                <input type="number" id="minPayout" value="1800" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="rto" class="block text-sm font-medium text-gray-700">RTO</label>
+                                <input type="text" id="rto" value="DL01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="oem" class="block text-sm font-medium text-gray-700">OEM</label>
+                                <input type="text" id="oem" value="TVS" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="fuel" class="block text-sm font-medium text-gray-700">Fuel</label>
+                                <input type="text" id="fuel" value="Petrol" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="body" class="block text-sm font-medium text-gray-700">Body Type</label>
+                                <input type="text" id="body" value="Bike" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Find Optimal Match
+                        </button>
+                    </form>
+                    <div id="result-container" class="mt-6 p-6 bg-white rounded-lg shadow-md hidden">
+                        <h4 class="text-xl font-medium text-gray-800 mb-2">Test Result:</h4>
+                        <div id="test-result" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-2">Project Applicability & Conclusion</h3>
+                    <p>
+                        This prescriptive analytics model is a powerful tool for any organization dealing with complex, constraint-based assignment problems. It moves beyond simple reporting and prediction to provide a clear, data-driven action plan.
+                    </p>
+                    <p class="mt-4">
+                        <strong>How is this optimal for different organizations?</strong>
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 mt-2">
+                        <li><strong>For a small organization:</strong> It automates a critical process, eliminating manual errors and saving time, allowing them to focus on business growth.</li>
+                        <li><strong>For a large enterprise:</strong> The model's scalability allows it to handle thousands of dealers and branches efficiently, ensuring consistent profitability and operational excellence. It can also be extended with additional constraints (like volume caps) to manage insurer relationships strategically.</li>
+                        <li><strong>In other sectors:</strong> The same methodology can be applied to diverse problems, such as fleet management (assigning vehicles to routes), supply chain logistics (assigning products to warehouses), or even resource allocation in project management.</li>
+                    </ul>
+                </div>
+
+                <!-- GitHub Link -->
+                <div class="mt-8 text-center">
+                    <a href="https://github.com/KunalKsh/Prescriptive-Analytics-Project" class="inline-block py-3 px-6 bg-gray-800 text-white font-semibold rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200" target="_blank">
+                        Find Original Files on GitHub
+                    </a>
+                    <p class="text-sm text-gray-500 mt-2">
+                        (Note: Please replace the placeholder link with your actual GitHub repository URL.)
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript for the Test Scenario and Dashboard -->
+    <script>
+        // Data for branches and CPA
+        const BRANCHES_DATA = [
+            { id: 'B1', active: true, po: 0.40, rtos: 'MH01, MH02, DL01, KA01', oems: 'All', fuels: 'Petrol', bodies: 'Bike, Scooter' },
+            { id: 'B2', active: true, po: 0.35, rtos: 'GJ01, MH01, BR10', oems: 'Hero, Honda, TVS', fuels: 'Petrol', bodies: 'Bike' },
+            { id: 'B3', active: true, po: 0.42, rtos: 'All', oems: 'All', fuels: 'Petrol, Electric', bodies: 'Bike, Scooter' },
+            { id: 'B4', active: true, po: 0.38, rtos: 'UP32, BR10, DL01', oems: 'Bajaj, Yamaha, Suzuki', fuels: 'Petrol', bodies: 'Bike, Scooter' },
+            { id: 'B5', active: false, po: 0.37, rtos: 'MH02, KA01', oems: 'Honda, Royal Enfield', fuels: 'Petrol', bodies: 'Bike' }
+        ];
+        const CPA = 200;
+
+        // Optimal solution data for the dashboard charts
+        const OPTIMAL_RESULTS = [
+            { dealer: 'D1', branch: 'B3', premium: 6000, po: 0.42, payout: 2520, cpa: 200, margin: 520 },
+            { dealer: 'D2', branch: 'B3', premium: 7500, po: 0.42, payout: 3150, cpa: 200, margin: 950 },
+            { dealer: 'D3', branch: 'B1', premium: 5000, po: 0.40, payout: 2000, cpa: 200, margin: 300 },
+            { dealer: 'D4', branch: 'B3', premium: 6800, po: 0.42, payout: 2856, cpa: 200, margin: 956 },
+            { dealer: 'D5', branch: 'B3', premium: 7200, po: 0.42, payout: 3024, cpa: 200, margin: 724 },
+            { dealer: 'D6', branch: 'B4', premium: 5500, po: 0.38, payout: 2090, cpa: 200, margin: 290 },
+            { dealer: 'D7', branch: 'B3', premium: 6400, po: 0.42, payout: 2688, cpa: 200, margin: 588 }
+        ];
+        const TOTAL_PROFIT = 4328;
+
+        // Function to check feasibility based on constraints
+        function checkFeasibility(dealer, branch) {
+            // Constraint 9: Only active branches
+            if (!branch.active) return false;
+
+            // Constraint 1: RTO match
+            const isRtoMatch = branch.rtos.toLowerCase() === 'all' || branch.rtos.split(',').map(s => s.trim().toLowerCase()).includes(dealer.rto.toLowerCase());
+            if (!isRtoMatch) return false;
+
+            // Constraint 2: OEM match
+            const isOemMatch = branch.oems.toLowerCase() === 'all' || branch.oems.split(',').map(s => s.trim().toLowerCase()).includes(dealer.oem.toLowerCase());
+            if (!isOemMatch) return false;
+
+            // Constraint 3: Fuel Type match
+            const isFuelMatch = branch.fuels.split(',').map(s => s.trim().toLowerCase()).includes(dealer.fuel.toLowerCase());
+            if (!isFuelMatch) return false;
+
+            // Constraint 4: Body Type match
+            const isBodyMatch = branch.bodies.split(',').map(s => s.trim().toLowerCase()).includes(dealer.body.toLowerCase());
+            if (!isBodyMatch) return false;
+
+            // Constraint 5: PO% > 0
+            if (branch.po <= 0) return false;
+
+            // Constraint 10: Margin >= 0
+            const calculatedMargin = (dealer.premium * branch.po) - dealer.minPayout - CPA;
+            if (calculatedMargin < 0) return false;
+
+            // All checks passed
+            return true;
+        }
+
+        // Function to calculate margin
+        function calculateMargin(dealer, branch) {
+            return (dealer.premium * branch.po) - dealer.minPayout - CPA;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('test-form');
+            const resultContainer = document.getElementById('result-container');
+            const resultDiv = document.getElementById('test-result');
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                // Get user inputs
+                const newDealer = {
+                    premium: parseFloat(document.getElementById('premium').value),
+                    minPayout: parseFloat(document.getElementById('minPayout').value),
+                    rto: document.getElementById('rto').value.trim(),
+                    oem: document.getElementById('oem').value.trim(),
+                    fuel: document.getElementById('fuel').value.trim(),
+                    body: document.getElementById('body').value.trim()
+                };
+
+                let bestMatch = null;
+                let maxMargin = -Infinity;
+
+                // Loop through each branch to find the optimal assignment
+                BRANCHES_DATA.forEach(branch => {
+                    if (checkFeasibility(newDealer, branch)) {
+                        const margin = calculateMargin(newDealer, branch);
+                        if (margin > maxMargin) {
+                            maxMargin = margin;
+                            bestMatch = branch;
+                        }
+                    }
+                });
+
+                // Display the result
+                resultContainer.classList.remove('hidden');
+                resultDiv.innerHTML = ''; // Clear previous results
+
+                if (bestMatch) {
+                    const finalMargin = calculateMargin(newDealer, bestMatch);
+                    resultDiv.innerHTML = `
+                        <p class="text-green-700 font-semibold text-lg">Optimal Match Found!</p>
+                        <p><strong>Assigned Branch:</strong> ${bestMatch.id}</p>
+                        <p><strong>Calculated Margin:</strong> ₹${finalMargin.toFixed(2)}</p>
+                        <p><strong>PO%:</strong> ${(bestMatch.po * 100).toFixed(2)}%</p>
+                        <p class="text-gray-500 text-sm mt-2">
+                            This assignment maximizes the profit while satisfying all feasibility constraints.
+                        </p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="text-red-700 font-semibold text-lg">No Feasible Match Found</p>
+                        <p class="text-gray-500 text-sm mt-2">
+                            The provided dealer details do not meet the constraints of any available insurer branch.
+                        </p>
+                    `;
+                }
+            });
+
+            // Highlight active nav link on scroll
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+
+            window.addEventListener('scroll', () => {
+                let currentSection = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        currentSection = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.href.includes(currentSection)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            // --- Dashboard Chart Initialization ---
+            const profitabilityCtx = document.getElementById('profitability-chart');
+            const assignmentsCtx = document.getElementById('assignments-chart');
+
+            // Data for Profitability Breakdown Chart
+            const profitabilityData = OPTIMAL_RESULTS.map(d => d.margin);
+            const profitabilityLabels = OPTIMAL_RESULTS.map(d => d.dealer);
+
+            // Data for Assignments by Branch Chart
+            const branchAssignments = OPTIMAL_RESULTS.reduce((acc, curr) => {
+                acc[curr.branch] = (acc[curr.branch] || 0) + 1;
+                return acc;
+            }, {});
+            const assignmentLabels = Object.keys(branchAssignments);
+            const assignmentData = Object.values(branchAssignments);
+
+            // Chart Colors
+            const chartColors = ['#4A5568', '#4299E1', '#F6AD55', '#38B2AC', '#E53E3E', '#A0AEC0', '#ED8936'];
+
+            // Create Profitability Chart (Pie Chart)
+            new Chart(profitabilityCtx, {
+                type: 'pie',
+                data: {
+                    labels: profitabilityLabels,
+                    datasets: [{
+                        label: 'Margin Contribution',
+                        data: profitabilityData,
+                        backgroundColor: chartColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((sum, current) => sum + current, 0);
+                                    const percentage = ((value / total) * 100).toFixed(2);
+                                    label += `₹${value.toFixed(2)} (${percentage}%)`;
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Create Assignments Chart (Bar Chart)
+            new Chart(assignmentsCtx, {
+                type: 'bar',
+                data: {
+                    labels: assignmentLabels,
+                    datasets: [{
+                        label: 'Number of Assignments',
+                        data: assignmentData,
+                        backgroundColor: '#4299E1',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Assignments'
+                            },
+                            ticks: {
+                                precision: 0
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Insurer Branch'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
